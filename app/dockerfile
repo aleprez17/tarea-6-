@@ -1,0 +1,23 @@
+# Etapa de desarrollo
+FROM node:23-alpine3.21 AS desarrollo
+WORKDIR /app
+COPY package*.json .   
+RUN npm install
+
+# Etapa de construcción
+FROM node:23-alpine3.21 AS construccion
+WORKDIR /app
+COPY --from=desarrollo /app/node_modules ./node_modules
+COPY . .                
+RUN npm run build       
+
+# Etapa de ejecución
+FROM node:23-alpine3.21 AS ejecucion
+WORKDIR /app
+COPY package*.json ./   
+RUN npm install --prod  
+COPY --from=construccion /app/dist ./dist  
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["npm", "run", "start:prod"]
